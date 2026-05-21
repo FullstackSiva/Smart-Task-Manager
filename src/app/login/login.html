@@ -1,0 +1,60 @@
+<div class="login-page">
+
+  <div class="login-card">
+
+    <h1>
+      SmartTasks
+    </h1>
+
+    <p class="subtitle">
+      Login to continue
+    </p>
+
+    <input
+      [(ngModel)]="email"
+      placeholder="Email"
+      class="form-control"
+    />
+
+    <input
+      [(ngModel)]="password"
+      type="password"
+      placeholder="Password"
+      class="form-control"
+    />
+
+    <p
+      *ngIf="errorMessage"
+      class="error-text"
+    >
+      {{ errorMessage }}
+    </p>
+
+    <button
+      (click)="login()"
+      class="login-btn"
+    >
+      Login
+    </button>
+
+    <div class="demo-credentials">
+
+      <h4>
+        Demo Credentials
+      </h4>
+
+      <p>
+        Email:
+        admin@gmail.com
+      </p>
+
+      <p>
+        Password:
+        admin123
+      </p>
+
+    </div>
+
+  </div>
+
+</div>

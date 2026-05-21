@@ -1,0 +1,11 @@
+<div class="card p-4 shadow-sm mb-4">
+ <h4>Add Task</h4>
+ <input [(ngModel)]="title" class="form-control mb-3" placeholder="Task title">
+ <textarea [(ngModel)]="description" class="form-control mb-3" placeholder="Description"></textarea>
+ <select [(ngModel)]="priority" class="form-select mb-3">
+  <option>High</option>
+  <option>Medium</option>
+  <option>Low</option>
+ </select>
+ <button class="btn btn-primary" (click)="addTask()">Add Task</button>
+</div>

@@ -1,0 +1,752 @@
+<div *ngIf="
+  authService.isLoggedIn();
+  else loginPage
+"><div class="app-layout">
+
+  <div class="sidebar">
+    <h2>
+      <i class="bi bi-check2-square"></i>
+      SmartTasks
+    </h2>
+  </div>
+
+  <div class="main-content">
+<button
+  class="add-task-btn"
+  (click)="openTaskModal()"
+>
+  <i class="bi bi-plus-circle"></i>
+  Add Task
+</button>
+<div class="top-header">
+
+  <div>
+    <h2>
+      Smart Task Manager
+    </h2>
+
+    <p class="welcome-text">
+      Welcome back 👋
+    </p>
+  </div>
+
+<div class="header-actions">
+
+  <button
+    class="theme-btn"
+    (click)="toggleDarkMode()"
+  >
+    <i
+      class="bi"
+      [class.bi-moon-fill]="!isDarkMode"
+      [class.bi-sun-fill]="isDarkMode"
+    ></i>
+  </button>
+
+  <div class="profile-wrapper">
+
+    <div
+      class="profile-btn"
+      (click)="toggleProfileMenu()"
+    >
+      <div class="avatar">
+        {{
+          authService
+          .currentUser()
+          .charAt(0)
+          .toUpperCase()
+        }}
+      </div>
+
+      <span>
+        {{
+          authService
+          .currentUser()
+        }}
+      </span>
+
+      <i
+        class="bi bi-chevron-down"
+      ></i>
+    </div>
+
+    <div
+      *ngIf="showProfileMenu"
+      class="profile-dropdown"
+    >
+
+      <button
+        (click)="logout()"
+      >
+        <i
+          class="bi bi-box-arrow-right"
+        ></i>
+
+        Logout
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+</div>
+
+    <!-- Dashboard -->
+
+    <div class="dashboard-grid">
+
+      <div class="stat-card">
+        <h3>
+          {{ taskService.totalTasks() }}
+        </h3>
+        <p>Total Tasks</p>
+      </div>
+
+      <div class="stat-card">
+        <h3>
+          {{ taskService.pendingTasks() }}
+        </h3>
+        <p>Pending</p>
+      </div>
+
+      <div class="stat-card">
+        <h3>
+          {{ taskService.completedTasks() }}
+        </h3>
+        <p>Completed</p>
+      </div>
+
+    </div>
+    <div class="reminder-card">
+
+  <h3>
+    Task Reminders
+  </h3>
+
+  <div class="reminder-grid">
+
+    <div
+      class="reminder-item overdue"
+    >
+      <h4>
+        Overdue
+      </h4>
+
+      <span>
+        {{
+          overdueTasks.length
+        }}
+      </span>
+    </div>
+
+    <div
+      class="reminder-item today"
+    >
+      <h4>
+        Due Today
+      </h4>
+
+      <span>
+        {{
+          dueTodayTasks.length
+        }}
+      </span>
+    </div>
+
+    <div
+      class="reminder-item tomorrow"
+    >
+      <h4>
+        Tomorrow
+      </h4>
+
+      <span>
+        {{
+          dueTomorrowTasks.length
+        }}
+      </span>
+    </div>
+
+  </div>
+
+</div>
+<div class="progress-card">
+
+  <div class="progress-header">
+    <h3>Task Progress</h3>
+
+    <span>
+      {{ taskService.completedTasks() }}
+      /
+      {{ taskService.totalTasks() }}
+      Completed
+    </span>
+  </div>
+
+  <div class="progress-bar-wrapper">
+    <div
+      class="progress-fill"
+      [style.width.%]="
+        taskService.totalTasks()
+          ? (taskService.completedTasks()
+          / taskService.totalTasks()) * 100
+          : 0
+      "
+    ></div>
+  </div>
+
+</div>
+<div class="chart-card">
+
+  <h3>
+    Task Analytics
+  </h3>
+
+  <div
+    *ngIf="
+      taskService.totalTasks() > 0;
+      else noChart
+    "
+  >
+
+    <canvas
+      baseChart
+      [data]="pieChartData"
+      [type]="pieChartType"
+      [options]="pieChartOptions"
+    >
+    </canvas>
+
+  </div>
+
+  <ng-template #noChart>
+
+    <div class="chart-empty">
+      <i
+        class="bi bi-bar-chart"
+      ></i>
+
+      <p>
+        Add tasks to see analytics
+      </p>
+    </div>
+
+  </ng-template>
+
+</div>
+    
+    <!-- Search -->
+
+    <div class="filters">
+
+      <input
+        [(ngModel)]="searchTerm"
+        class="form-control"
+        placeholder="Search tasks..."
+      />
+<select
+  [(ngModel)]="
+    selectedStatus
+  "
+  class="form-select"
+>
+
+  <option value="All">
+    All Tasks
+  </option>
+
+  <option value="Pending">
+    Pending
+  </option>
+
+  <option value="In Progress">
+    In Progress
+  </option>
+
+  <option value="Completed">
+    Completed
+  </option>
+
+</select>
+      <select
+        [(ngModel)]="filterStatus"
+        class="form-select"
+      >
+        <option>All</option>
+        <option>Pending</option>
+        <option>In Progress</option>
+        <option>Completed</option>
+      </select>
+
+    </div>
+<button
+  class="mark-all-btn"
+  (click)="markAllCompleted()"
+>
+  <i class="bi bi-check2-all"></i>
+  Mark All Completed
+</button>
+<button
+  class="export-btn"
+  (click)="exportTasksToPDF()"
+>
+  <i class="bi bi-file-earmark-pdf"></i>
+
+  Export PDF
+</button>
+    <!-- Task List -->
+
+<div *ngIf="isLoading">
+
+  <div
+    class="skeleton-card"
+    *ngFor="
+      let item of
+      [1,2,3,4]
+    "
+  >
+
+    <div class="skeleton-title">
+    </div>
+
+    <div class="skeleton-text">
+    </div>
+
+    <div class="skeleton-text short">
+    </div>
+
+  </div>
+
+</div>
+<div
+  *ngIf="
+    !isLoading &&
+    filteredTasks.length
+  "
+>
+
+      <div
+  *ngFor="
+    let task of filteredTasks
+  "
+  class="task-card" [class.overdue-task]="
+  task.dueDate &&
+  task.dueDate <
+  todayDate &&
+  task.status !==
+  'Completed'
+"
+  cdkDrag
+>
+<span class="category-badge">
+  {{ task.category }}
+</span>
+        <div>
+          <h4>{{ task.title }}</h4>
+          <p>{{ task.description }}</p>
+<p class="due-date">
+  <i class="bi bi-calendar-event"></i>
+  <i
+  class="bi bi-grip-vertical drag-icon"
+></i>
+  Due:
+  {{ task.dueDate || 'No Date' }}
+</p>
+          <span
+            class="priority-badge"
+            [ngClass]="{
+              high: task.priority === 'High',
+              medium: task.priority === 'Medium',
+              low: task.priority === 'Low'
+            }"
+          >
+            {{ task.priority }}
+          </span>
+        </div>
+
+        <div class="actions">
+
+          <select
+            (change)="changeStatus(task, $any($event.target).value)"
+          >
+            <option
+              [selected]="task.status==='Pending'"
+            >
+              Pending
+            </option>
+
+            <option
+              [selected]="task.status==='In Progress'"
+            >
+              In Progress
+            </option>
+
+            <option
+              [selected]="task.status==='Completed'"
+            >
+              Completed
+            </option>
+          </select>
+
+          <button
+            class="edit-btn"
+            (click)="editTask(task)"
+          >
+            Edit
+          </button>
+
+          <button
+  class="archive-btn"
+  (click)="archiveTask(task)"
+>
+  <i class="bi bi-archive"></i>
+  Archive
+</button>
+        </div>
+      </div>
+
+    </div>
+<div class="kanban-board">
+
+  <!-- Pending -->
+
+  <div
+    class="kanban-column"
+    cdkDropList
+    [cdkDropListData]="pendingTasks"
+    (cdkDropListDropped)="
+      dropKanban(
+        $event,
+        'Pending'
+      )
+    "
+  >
+
+    <h3>Pending</h3>
+
+    <div
+      *ngFor="
+        let task of pendingTasks
+      "
+      cdkDrag
+      class="mini-task"
+    >
+      {{ task.title }}
+    </div>
+
+  </div>
+
+  <!-- In Progress -->
+
+  <div
+    class="kanban-column"
+    cdkDropList
+    [cdkDropListData]="
+      inProgressTasks
+    "
+    (cdkDropListDropped)="
+      dropKanban(
+        $event,
+        'In Progress'
+      )
+    "
+  >
+
+    <h3>In Progress</h3>
+
+    <div
+      *ngFor="
+        let task of
+        inProgressTasks
+      "
+      cdkDrag
+      class="mini-task"
+    >
+      {{ task.title }}
+    </div>
+
+  </div>
+
+  <!-- Completed -->
+
+  <div
+    class="kanban-column"
+    cdkDropList
+    [cdkDropListData]="
+      completedTasksList
+    "
+    (cdkDropListDropped)="
+      dropKanban(
+        $event,
+        'Completed'
+      )
+    "
+  >
+
+    <h3>Completed</h3>
+
+    <div
+      *ngFor="
+        let task of
+        completedTasksList
+      "
+      cdkDrag
+      class="mini-task"
+    >
+      {{ task.title }}
+    </div>
+
+  </div>
+
+</div>
+<div class="calendar-card">
+
+  <h2>
+    Task Planner
+  </h2>
+
+  <div
+    *ngFor="
+      let group of groupedTasks
+    "
+    class="calendar-day"
+  >
+
+    <div class="calendar-date">
+
+      <i
+        class="bi bi-calendar-event"
+      ></i>
+
+      {{ group[0] }}
+
+    </div>
+
+    <div class="calendar-tasks">
+
+      <div
+        *ngFor="
+          let task of group[1]
+        "
+        class="calendar-task"
+      >
+
+        <strong>
+          {{ task.title }}
+        </strong>
+
+        <span
+          class="calendar-status"
+        >
+          {{ task.status }}
+        </span>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+<div class="archive-card">
+
+  <h2>
+    Archived Tasks
+  </h2>
+
+  <div
+    *ngFor="
+      let task of
+      taskService.tasks()
+      .filter(
+        t => t.isArchived
+      )
+    "
+    class="archive-task"
+  >
+
+    <div>
+
+      <strong>
+        {{ task.title }}
+      </strong>
+
+      <p>
+        {{ task.status }}
+      </p>
+
+    </div>
+
+    <!-- <button
+      (click)="
+        restoreTask(task)
+      "
+      class="restore-btn"
+    >
+      Restore
+    </button> -->
+<div class="archive-actions">
+
+  <button
+    (click)="restoreTask(task)"
+    class="restore-btn"
+  >
+    Restore
+  </button>
+
+  <button
+    (click)="
+      deleteForever(task.id)
+    "
+    class="delete-btn"
+  >
+    Delete
+  </button>
+
+</div>
+  </div>
+
+</div>
+<div
+  *ngIf="
+    !isLoading &&
+    !filteredTasks.length
+  "
+  class="empty-state"
+>
+
+  <i
+    class="bi bi-clipboard-x"
+  ></i>
+
+  <h2>
+    No Tasks Yet
+  </h2>
+
+  <p>
+    Create your first task
+    to get started.
+  </p>
+
+</div>
+
+  </div>
+</div>
+<div
+  class="toast-box"
+  *ngIf="showToast"
+>
+  <i class="bi bi-check-circle-fill"></i>
+
+  {{ toastMessage }}
+</div></div>
+
+<ng-template #loginPage>
+
+  <app-login></app-login>
+
+</ng-template>
+<div
+  class="modal-overlay"
+  *ngIf="showTaskModal"
+>
+
+  <div class="task-modal">
+
+    <div class="modal-header">
+
+      <h2>
+        {{
+          isEditing
+          ? 'Edit Task'
+          : 'Add Task'
+        }}
+      </h2>
+
+      <button
+        class="close-btn"
+        (click)="resetForm()"
+      >
+        ✕
+      </button>
+
+    </div>
+
+    <input
+      [(ngModel)]="title"
+      placeholder="Task Title"
+      class="form-control"
+    />
+<p
+  *ngIf="taskErrors.title"
+  class="error-text"
+>
+  {{ taskErrors.title }}
+</p>
+    <textarea
+      [(ngModel)]="description"
+      placeholder="Description"
+      class="form-control"
+    ></textarea>
+<p
+  *ngIf="
+    taskErrors.description
+  "
+  class="error-text"
+>
+  {{
+    taskErrors.description
+  }}
+</p>
+    <input
+      type="date"
+      [(ngModel)]="dueDate"
+      class="form-control"
+    />
+<p
+  *ngIf="
+    taskErrors.dueDate
+  "
+  class="error-text"
+>
+  {{ taskErrors.dueDate }}
+</p>
+    <select
+      [(ngModel)]="priority"
+      class="form-select"
+    >
+      <option>High</option>
+      <option>Medium</option>
+      <option>Low</option>
+    </select>
+
+    <select
+      [(ngModel)]="category"
+      class="form-select"
+    >
+      <option>Work</option>
+      <option>Personal</option>
+      <option>Learning</option>
+      <option>Other</option>
+    </select>
+
+<button
+  class="save-btn"
+  (click)="
+    isEditing
+    ? updateTask()
+    : addTask()
+  "
+>
+  {{
+    isEditing
+    ? 'Update Task'
+    : 'Add Task'
+  }}
+</button>
+
+  </div>
+
+</div>
