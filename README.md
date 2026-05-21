@@ -30,10 +30,6 @@ A premium productivity dashboard built using Angular.
 - HTML5
 - CSS3
 
-## Screenshots
-
-(Add screenshots here)
-
 ## Run Locally
 
 ```bash
